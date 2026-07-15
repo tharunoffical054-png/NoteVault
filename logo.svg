@@ -1,0 +1,22 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="nv-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7C5CFF"/>
+      <stop offset="55%" stop-color="#B06AFF"/>
+      <stop offset="100%" stop-color="#FF6B9D"/>
+    </linearGradient>
+    <linearGradient id="nv-grad-soft" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#F5F1FF"/>
+      <stop offset="100%" stop-color="#E7E0FF"/>
+    </linearGradient>
+  </defs>
+  <rect x="4" y="4" width="56" height="56" rx="18" fill="url(#nv-grad-soft)"/>
+  <rect x="4" y="4" width="56" height="56" rx="18" fill="none" stroke="url(#nv-grad)" stroke-width="2" opacity="0.5"/>
+  <path d="M20 44 V20 a4 4 0 0 1 4 -4 h6 l14 14 v14 a4 4 0 0 1 -4 4 H24 a4 4 0 0 1 -4 -4 Z"
+        fill="url(#nv-grad)"/>
+  <path d="M30 16 L44 30 H34 a4 4 0 0 1 -4 -4 Z" fill="#ffffff" opacity="0.55"/>
+  <circle cx="26" cy="34" r="1.6" fill="#ffffff"/>
+  <rect x="30" y="33" width="10" height="2.2" rx="1.1" fill="#ffffff" opacity="0.9"/>
+  <circle cx="26" cy="40" r="1.6" fill="#ffffff"/>
+  <rect x="30" y="39" width="7" height="2.2" rx="1.1" fill="#ffffff" opacity="0.7"/>
+</svg>

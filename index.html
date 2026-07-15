@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NotesVault — Sign in</title>
+<link rel="icon" href="logo.svg">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="auth-shell page-enter">
+
+  <!-- Left: brand art -->
+  <div class="auth-art">
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+    <div class="blob b3"></div>
+    <div class="logo-mark" style="--tw:1">
+      <img src="logo.svg" alt="NotesVault logo">
+      <span style="color:#fff; -webkit-text-fill-color:#fff;">NotesVault</span>
+    </div>
+    <div>
+      <h1 class="tagline">Every idea deserves
+        a calm place to land.
+        <span class="accent">Notes, wishlists and reminders — organized, synced, and yours alone.</span>
+      </h1>
+      <div class="float-card">
+        <strong>🔒 Local-first &amp; private</strong>
+        <div style="font-size:13px; opacity:.85; margin-top:4px;">Your notes stay on this device unless you choose to export them.</div>
+      </div>
+    </div>
+    <div style="position:relative; z-index:1; font-size:12px; opacity:.75;">© 2026 NotesVault</div>
+  </div>
+
+  <!-- Right: auth card -->
+  <div class="auth-panel">
+    <div class="auth-card clay">
+      <div class="logo-mark" style="margin-bottom:22px; justify-content:center;">
+        <img src="logo.svg" alt="">
+        <span>NotesVault</span>
+      </div>
+
+      <div class="auth-tabs">
+        <button id="tabSignin" class="active" onclick="showForm('signin')">Sign in</button>
+        <button id="tabSignup" onclick="showForm('signup')">Create account</button>
+      </div>
+
+      <!-- Sign in -->
+      <form id="signinForm" class="auth-form active" onsubmit="return handleSignin(event)">
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="si-email" placeholder="you@example.com" required>
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" id="si-password" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn btn-primary auth-submit">Sign in →</button>
+        <div class="auth-divider">or continue with</div>
+        <div class="social-row">
+          <button type="button" class="btn social-btn" onclick="openProviderPanel('Google')">
+            <svg viewBox="0 0 24 24"><path fill="#EA4335" d="M12 10.2v3.9h5.5c-.24 1.3-1.7 3.8-5.5 3.8-3.3 0-6-2.7-6-6.1s2.7-6.1 6-6.1c1.9 0 3.1.8 3.9 1.5l2.6-2.6C16.9 3 14.7 2 12 2 6.9 2 2.7 6.1 2.7 11.2S6.9 20.4 12 20.4c6.9 0 8.7-4.8 8.7-7.3 0-.5 0-.9-.1-1.3H12z"/></svg>
+            Google
+          </button>
+          <button type="button" class="btn social-btn" onclick="openProviderPanel('GitHub')">
+            <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.9 1.52 2.34 1.08 2.91.83.09-.65.35-1.08.63-1.33-2.22-.25-4.56-1.11-4.56-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02a9.5 9.5 0 0 1 5 0c1.9-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.86v2.75c0 .27.18.58.69.48A10 10 0 0 0 12 2z"/></svg>
+            GitHub
+          </button>
+        </div>
+      </form>
+
+
+
+      <!-- Sign up -->
+      <form id="signupForm" class="auth-form" onsubmit="return handleSignup(event)">
+        <div class="field">
+          <label>Name</label>
+          <input type="text" id="su-name" placeholder="Your name" required>
+        </div>
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="su-email" placeholder="you@example.com" required>
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" id="su-password" placeholder="••••••••" required>
+        </div>
+        <div class="field">
+          <label>Confirm password</label>
+          <input type="password" id="su-confirm" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn btn-primary auth-submit">Create account →</button>
+      </form>
+
+      <div class="auth-foot">By continuing you agree this is a demo, local-only workspace.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Google / GitHub credential panel -->
+<div class="modal-overlay" id="providerModal">
+  <div class="modal-box" style="text-align:left;">
+    <button class="modal-close" onclick="closeProviderPanel()">✕</button>
+    <div class="logo-mark" style="justify-content:center; margin-bottom:8px;"><img src="logo.svg"><span>NotesVault</span></div>
+    <h3 id="providerTitle" style="margin:10px 0 4px; text-align:center;">Continue with Google</h3>
+    <p style="font-size:12px; color:var(--text-soft); margin:0 0 16px; text-align:center;">
+      New email? We'll create your account. Existing email? We'll check your password.
+    </p>
+    <form id="providerForm" onsubmit="return handleProviderSubmit(event)">
+      <div class="field">
+        <label id="providerEmailLabel">Email</label>
+        <input type="email" id="pv-email" placeholder="you@example.com" required>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="pv-password" placeholder="••••••••" required>
+      </div>
+      <button type="submit" class="btn btn-primary auth-submit" id="providerSubmitBtn">Continue →</button>
+    </form>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+// ---------- Google / GitHub credential panel ----------
+// Real check: existing email -> password must match. New email -> registers it.
+// (Can't verify against a real Google/GitHub password from a website — see chat.)
+let providerName = 'Google';
+
+function openProviderPanel(provider){
+  providerName = provider;
+  document.getElementById('providerTitle').textContent = 'Continue with ' + provider;
+  document.getElementById('providerEmailLabel').textContent = provider + ' email';
+  document.getElementById('pv-email').value = '';
+  document.getElementById('pv-password').value = '';
+  document.getElementById('providerSubmitBtn').textContent = 'Continue with ' + provider + ' →';
+  document.getElementById('providerModal').classList.add('show');
+  setTimeout(() => document.getElementById('pv-email').focus(), 150);
+}
+function closeProviderPanel(){ document.getElementById('providerModal').classList.remove('show'); }
+
+function handleProviderSubmit(e){
+  e.preventDefault();
+  const email = document.getElementById('pv-email').value.trim();
+  const password = document.getElementById('pv-password').value;
+  const result = NV.registerOrLogin(email, password, providerName);
+
+  if (!result.ok){
+    NV.toast('Incorrect password for that email.', 'danger');
+    return false;
+  }
+  NV.setSession({ name: result.name, email: email.toLowerCase(), provider: providerName, memberSince: new Date().toISOString() });
+  NV.toast(result.isNew ? 'Account created — welcome!' : 'Welcome back!', 'success');
+  closeProviderPanel();
+  setTimeout(() => window.location.href = 'dashboard.html', 400);
+  return false;
+}
+
+// ---------- local email/password (now with real checks) ----------
+function showForm(which){
+  document.getElementById('tabSignin').classList.toggle('active', which==='signin');
+  document.getElementById('tabSignup').classList.toggle('active', which==='signup');
+  document.getElementById('signinForm').classList.toggle('active', which==='signin');
+  document.getElementById('signupForm').classList.toggle('active', which==='signup');
+}
+
+function handleSignin(e){
+  e.preventDefault();
+  const email = document.getElementById('si-email').value.trim();
+  const password = document.getElementById('si-password').value;
+  const result = NV.loginUser(email, password);
+
+  if (!result.ok){
+    if (result.reason === 'notfound'){
+      NV.toast('No account with that email. Try "Create account" instead.', 'info');
+    } else {
+      NV.toast('Incorrect password.', 'danger');
+    }
+    return false;
+  }
+  NV.setSession({ name: result.user.name, email: email.toLowerCase(), provider:'local', memberSince: new Date().toISOString() });
+  NV.toast('Welcome back!', 'success');
+  setTimeout(() => window.location.href = 'dashboard.html', 500);
+  return false;
+}
+
+function handleSignup(e){
+  e.preventDefault();
+  const pw = document.getElementById('su-password').value;
+  const cpw = document.getElementById('su-confirm').value;
+  if (pw !== cpw){ NV.toast("Passwords don't match.", 'danger'); return false; }
+  const name = document.getElementById('su-name').value.trim();
+  const email = document.getElementById('su-email').value.trim();
+
+  const result = NV.registerUser(email, pw, name);
+  if (!result.ok){
+    NV.toast('That email is already registered. Try signing in instead.', 'info');
+    return false;
+  }
+  NV.setSession({ name, email: email.toLowerCase(), provider:'local', memberSince: new Date().toISOString() });
+  NV.toast('Account created — welcome to NotesVault!', 'success');
+  setTimeout(() => window.location.href = 'dashboard.html', 600);
+  return false;
+}
+
+// if already signed in, skip straight to dashboard
+if (NV.getSession()) window.location.href = 'dashboard.html';
+</script>
+</body>
+</html>

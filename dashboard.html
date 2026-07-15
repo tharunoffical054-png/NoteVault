@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NotesVault — Dashboard</title>
+<link rel="icon" href="logo.svg">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app-shell page-enter">
+
+  <!-- ============ MAIN COLUMN ============ -->
+  <div>
+    <div class="topbar">
+      <div class="menu-wrap">
+        <button class="menu-btn" onclick="toggleMenu()" aria-label="Menu"><span></span><span></span><span></span></button>
+        <div class="menu-panel" id="menuPanel">
+          <div class="menu-section-label">Theme</div>
+          <div class="theme-options" id="themeOptions">
+            <button data-t="light">☀️ Light</button>
+            <button data-t="dark">🌙 Dark</button>
+            <button data-t="system">🖥 System</button>
+          </div>
+
+          <div class="menu-section-label">Voice assistant</div>
+          <div class="menu-row">
+            <span>Read notes aloud</span>
+            <button class="voice-toggle" id="voiceToggle" onclick="toggleVoice()"></button>
+          </div>
+          <div class="menu-row" style="flex-direction:column; align-items:stretch; gap:6px;">
+            <span style="font-size:12px; color:var(--text-soft);">Speed <span id="rateVal">1.0x</span></span>
+            <input type="range" min="0.5" max="1.8" step="0.1" id="rateRange" oninput="updateVoiceParams()">
+            <span style="font-size:12px; color:var(--text-soft);">Pitch <span id="pitchVal">1.0</span></span>
+            <input type="range" min="0.5" max="1.8" step="0.1" id="pitchRange" oninput="updateVoiceParams()">
+          </div>
+
+          <div class="menu-section-label">Account</div>
+          <div class="menu-row logout-row" onclick="doLogout()" style="cursor:pointer;">
+            <span>⏻ Logout</span>
+          </div>
+        </div>
+      </div>
+      <div class="logo-mark"><img src="logo.svg" alt=""><span class="brand-title" style="-webkit-text-fill-color:initial; background:none; color:var(--text);">NotesVault</span></div>
+      <div style="margin-left:auto; font-size:13px; color:var(--text-soft);" id="greeting"></div>
+    </div>
+
+    <div class="main-col">
+      <div class="stats-row stagger">
+        <div class="stat-pill clay"><div class="num" id="statTotal">0</div><div class="lbl">Total notes</div></div>
+        <div class="stat-pill clay"><div class="num" id="statHigh">0</div><div class="lbl">High priority</div></div>
+        <div class="stat-pill clay"><div class="num" id="statArchived">0</div><div class="lbl">Archived</div></div>
+        <div class="stat-pill clay"><div class="num" id="statRecycle">0</div><div class="lbl">In recycle bin</div></div>
+      </div>
+
+      <div class="filter-row">
+        <button class="filter-chip active" data-f="all" onclick="setFilter('all')">All</button>
+        <button class="filter-chip" data-f="Planned" onclick="setFilter('Planned')">Planned</button>
+        <button class="filter-chip" data-f="Watching" onclick="setFilter('Watching')">Watching</button>
+        <button class="filter-chip" data-f="Purchased" onclick="setFilter('Purchased')">Purchased</button>
+        <button class="filter-chip" data-f="Cancelled" onclick="setFilter('Cancelled')">Cancelled</button>
+      </div>
+
+      <div class="notes-grid" id="notesGrid"></div>
+    </div>
+  </div>
+
+  <!-- ============ RIGHT SIDE DASHBOARD ============ -->
+  <div class="side-dashboard">
+    <div>
+      <div class="dash-title">Actions</div>
+      <div class="dash-actions" style="margin-top:12px;">
+        <button class="dash-action create" onclick="goCreate()">
+          <span class="ic">＋</span>
+          <span class="txt"><strong>Create a new note</strong><small>Opens the full-page editor</small></span>
+        </button>
+        <button class="dash-action save" onclick="saveSelected()">
+          <span class="ic">💾</span>
+          <span class="txt"><strong>Save note to computer</strong><small id="saveHint">Saves the selected note as a file</small></span>
+        </button>
+        <button class="dash-action delete" onclick="deleteSelected()">
+          <span class="ic">🗑</span>
+          <span class="txt"><strong>Delete selected note</strong><small>Moves it to the recycle bin</small></span>
+        </button>
+        <button class="dash-action recycle" onclick="openRecycle()">
+          <span class="ic">♻️</span>
+          <span class="txt"><strong>Recycle bin</strong><small><span id="recycleCount">0</span> note(s) can be restored</small></span>
+        </button>
+      </div>
+    </div>
+
+    <div class="folder-status" id="folderStatus">No folder linked yet — saving will download the file instead.</div>
+
+    <div>
+      <div class="dash-title" style="margin-bottom:10px;">Selected note</div>
+      <div class="clay" id="selectedCard" style="padding:16px; font-size:13px; color:var(--text-soft);">
+        Tap a note card to select it for saving or deleting.
+      </div>
+    </div>
+
+    <div style="margin-top:auto;">
+      <div class="dash-title" style="margin-bottom:8px;">Profile</div>
+      <div class="clay" style="padding:16px; display:flex; gap:12px; align-items:center;">
+        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--violet),var(--pink));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;" id="avatarLetter">N</div>
+        <div style="overflow:hidden;">
+          <div style="font-weight:600; font-size:13px;" id="profName">—</div>
+          <div style="font-size:11px; color:var(--text-soft); text-overflow:ellipsis; overflow:hidden; white-space:nowrap;" id="profEmail">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Recycle bin modal -->
+<div class="modal-overlay" id="recycleModal">
+  <div class="modal-box" style="width:420px; text-align:left;">
+    <button class="modal-close" onclick="closeRecycle()">✕</button>
+    <h3 style="margin-bottom:4px;">♻️ Recycle bin</h3>
+    <p style="font-size:12px; color:var(--text-soft); margin:0 0 16px;">Restore a deleted note, or let it go for good.</p>
+    <div class="recycle-list" id="recycleList"></div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+const session = NV.requireSession();
+if (session){
+  document.getElementById('greeting').textContent = 'Hi, ' + (session.name || 'there') + ' 👋';
+  document.getElementById('profName').textContent = session.name || 'User';
+  document.getElementById('profEmail').textContent = session.email || '';
+  document.getElementById('avatarLetter').textContent = (session.name || 'N')[0].toUpperCase();
+}
+
+let currentFilter = 'all';
+let selectedId = null;
+
+function toggleMenu(){ document.getElementById('menuPanel').classList.toggle('open'); }
+document.addEventListener('click', (e) => {
+  const wrap = document.querySelector('.menu-wrap');
+  if (wrap && !wrap.contains(e.target)) document.getElementById('menuPanel').classList.remove('open');
+});
+
+// ---------- theme ----------
+function refreshThemeUI(){
+  const pref = NV.getThemePref();
+  document.querySelectorAll('#themeOptions button').forEach(b => b.classList.toggle('active', b.dataset.t === pref));
+}
+document.getElementById('themeOptions').addEventListener('click', (e) => {
+  const btn = e.target.closest('button'); if (!btn) return;
+  NV.setTheme(btn.dataset.t); refreshThemeUI();
+});
+refreshThemeUI();
+
+// ---------- voice ----------
+function refreshVoiceUI(){
+  const v = NV.getVoicePref();
+  document.getElementById('voiceToggle').classList.toggle('on', v.on);
+  document.getElementById('rateRange').value = v.rate;
+  document.getElementById('pitchRange').value = v.pitch;
+  document.getElementById('rateVal').textContent = v.rate.toFixed(1) + 'x';
+  document.getElementById('pitchVal').textContent = v.pitch.toFixed(1);
+}
+function toggleVoice(){ const v = NV.getVoicePref(); v.on = !v.on; NV.setVoicePref(v); refreshVoiceUI(); NV.toast('Voice ' + (v.on?'enabled':'disabled'), 'info'); }
+function updateVoiceParams(){
+  const v = NV.getVoicePref();
+  v.rate = parseFloat(document.getElementById('rateRange').value);
+  v.pitch = parseFloat(document.getElementById('pitchRange').value);
+  NV.setVoicePref(v); refreshVoiceUI();
+}
+refreshVoiceUI();
+
+function doLogout(){ NV.toast('Signing out…', 'info'); setTimeout(() => NV.logout(), 400); }
+
+// ---------- notes rendering ----------
+function setFilter(f){
+  currentFilter = f;
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.toggle('active', c.dataset.f === f));
+  renderNotes();
+}
+
+function goCreate(){ window.location.href = 'editor.html?mode=new'; }
+
+function renderNotes(){
+  const notes = NV.getNotes();
+  const grid = document.getElementById('notesGrid');
+  const filtered = currentFilter === 'all' ? notes : notes.filter(n => n.status === currentFilter);
+
+  document.getElementById('statTotal').textContent = notes.length;
+  document.getElementById('statHigh').textContent = notes.filter(n => n.priority === 'High').length;
+  document.getElementById('statArchived').textContent = notes.filter(n => n.status === 'Cancelled').length;
+  document.getElementById('statRecycle').textContent = NV.getRecycle().length;
+  document.getElementById('recycleCount').textContent = NV.getRecycle().length;
+
+  if (!filtered.length){
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">
+      <img src="logo.svg" alt="">
+      <h3>No notes here yet</h3>
+      <p>Use "Create a new note" on the right to start your first one.</p>
+    </div>`;
+    return;
+  }
+
+  grid.innerHTML = '';
+  filtered.forEach((n, i) => {
+    const card = document.createElement('div');
+    card.className = 'note-card clay' + (n.id === selectedId ? '' : '');
+    card.style.animationDelay = (i * 0.05) + 's';
+    if (n.id === selectedId) card.style.boxShadow = '0 0 0 3px var(--violet), var(--clay-shadow-out)';
+    card.innerHTML = `
+      <div class="card-actions">
+        <button class="icon-btn" title="Delete" onclick="event.stopPropagation(); quickDelete('${n.id}')">🗑</button>
+      </div>
+      <h4>${escapeHtml(n.title || 'Untitled')}</h4>
+      <p>${escapeHtml(stripHtml(n.content || '').slice(0,90))}</p>
+      <span class="note-tag ${n.priority === 'High' ? 'tag-high' : n.priority === 'Low' ? 'tag-low' : 'tag-normal'}">${n.priority || 'Normal'}</span>
+      ${n.status ? `<span class="note-tag tag-normal">${n.status}</span>` : ''}
+    `;
+    card.onclick = () => selectNote(n.id);
+    card.ondblclick = () => window.location.href = 'editor.html?mode=edit&id=' + n.id;
+    grid.appendChild(card);
+  });
+}
+
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function stripHtml(html){ const d = document.createElement('div'); d.innerHTML = html; return d.textContent || ''; }
+
+function selectNote(id){
+  selectedId = id;
+  const n = NV.getNotes().find(x => x.id === id);
+  const card = document.getElementById('selectedCard');
+  if (n){
+    card.innerHTML = `<strong style="color:var(--text);">${escapeHtml(n.title||'Untitled')}</strong><br><span style="font-size:11px;">Double-click a card to open it in the editor.</span>`;
+    NV.speak(n.title || '');
+  }
+  renderNotes();
+}
+
+function quickDelete(id){
+  const removed = NV.deleteNote(id);
+  if (selectedId === id) selectedId = null;
+  renderNotes();
+  if (removed){
+    NV.toast(`"${removed.title || 'Untitled'}" moved to recycle bin.`, 'danger', 'Undo', () => { NV.restoreNote(removed.id); renderNotes(); NV.toast('Note restored.', 'success'); });
+  }
+}
+
+function deleteSelected(){
+  if (!selectedId){ NV.toast('Select a note first.', 'info'); return; }
+  quickDelete(selectedId);
+}
+
+async function saveSelected(){
+  const notes = NV.getNotes();
+  const n = notes.find(x => x.id === selectedId) || notes[0];
+  if (!n){ NV.toast('There are no notes to save yet.', 'info'); return; }
+  await NV.saveNoteToDisk(n);
+  refreshFolderStatus();
+}
+
+function refreshFolderStatus(){
+  const el = document.getElementById('folderStatus');
+  el.innerHTML = NV.supportsFS
+    ? 'Files save as <b>.txt</b> via your browser\'s folder picker. First save will ask you to choose a folder.'
+    : 'Your browser downloads files instead of writing directly to a folder — <b>saved files land in Downloads</b>.';
+}
+refreshFolderStatus();
+
+// ---------- recycle bin ----------
+function openRecycle(){
+  const list = document.getElementById('recycleList');
+  const items = NV.getRecycle();
+  list.innerHTML = items.length ? '' : '<p style="font-size:13px; color:var(--text-soft);">Recycle bin is empty.</p>';
+  items.forEach(n => {
+    const row = document.createElement('div');
+    row.className = 'recycle-item';
+    row.innerHTML = `<div><strong>${escapeHtml(n.title||'Untitled')}</strong><br><span>${new Date(n.deletedAt).toLocaleString()}</span></div>`;
+    const btns = document.createElement('div');
+    btns.style.display = 'flex'; btns.style.gap = '6px';
+    const restoreBtn = document.createElement('button');
+    restoreBtn.className = 'icon-btn'; restoreBtn.title = 'Restore'; restoreBtn.textContent = '↺';
+    restoreBtn.onclick = () => { NV.restoreNote(n.id); openRecycle(); renderNotes(); NV.toast('Note restored.', 'success'); };
+    const purgeBtn = document.createElement('button');
+    purgeBtn.className = 'icon-btn'; purgeBtn.title = 'Delete forever'; purgeBtn.textContent = '✕';
+    purgeBtn.onclick = () => { NV.purgeNote(n.id); openRecycle(); renderNotes(); NV.toast('Note permanently deleted.', 'danger'); };
+    btns.append(restoreBtn, purgeBtn);
+    row.appendChild(btns);
+    list.appendChild(row);
+  });
+  document.getElementById('recycleModal').classList.add('show');
+}
+function closeRecycle(){ document.getElementById('recycleModal').classList.remove('show'); renderNotes(); }
+
+renderNotes();
+</script>
+</body>
+</html>

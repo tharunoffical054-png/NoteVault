@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NotesVault — Note editor</title>
+<link rel="icon" href="logo.svg">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="editor-shell page-enter">
+  <div class="editor-topbar">
+    <button class="back-link" onclick="window.location.href='dashboard.html'">← Back to dashboard</button>
+    <div class="logo-mark"><img src="logo.svg" alt=""><span>NotesVault</span></div>
+  </div>
+
+  <div class="editor-card clay">
+    <input type="text" id="title" class="editor-title-input" placeholder="Give this note a title…">
+
+    <div class="editor-meta-row">
+      <div>
+        <label style="font-size:11px; color:var(--text-soft); display:block; margin-bottom:6px;">Priority</label>
+        <div class="pill-group" id="priorityGroup">
+          <button data-v="Low">Low</button>
+          <button data-v="Normal" class="active">Normal</button>
+          <button data-v="High">High</button>
+        </div>
+      </div>
+      <div>
+        <label style="font-size:11px; color:var(--text-soft); display:block; margin-bottom:6px;">Status</label>
+        <select id="status">
+          <option>Planned</option>
+          <option>Watching</option>
+          <option>Purchased</option>
+          <option>Cancelled</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:11px; color:var(--text-soft); display:block; margin-bottom:6px;">Reminder</label>
+        <input type="date" id="reminder">
+      </div>
+    </div>
+
+    <div class="field" style="margin-bottom:16px;">
+      <label>Tags</label>
+      <input type="text" id="tags" placeholder="work, idea, urgent…">
+    </div>
+
+    <div class="rte-toolbar" id="rteToolbar">
+      <button type="button" class="rte-btn" data-cmd="bold" title="Bold"><b>B</b></button>
+      <button type="button" class="rte-btn" data-cmd="italic" title="Italic"><i>I</i></button>
+      <button type="button" class="rte-btn" data-cmd="underline" title="Underline"><u>U</u></button>
+      <button type="button" class="rte-btn" data-cmd="strikeThrough" title="Strikethrough"><s>S</s></button>
+      <span class="rte-divider"></span>
+      <select class="rte-select" id="fontFamilySelect" title="Font style">
+        <option value="Inter">Inter</option>
+        <option value="Sora">Sora</option>
+        <option value="Georgia">Georgia</option>
+        <option value="'Courier New'">Courier New</option>
+        <option value="'Comic Sans MS'">Comic Sans</option>
+        <option value="Verdana">Verdana</option>
+      </select>
+      <select class="rte-select" id="fontSizeSelect" title="Font size">
+        <option value="2">Small</option>
+        <option value="3" selected>Normal</option>
+        <option value="4">Medium</option>
+        <option value="5">Large</option>
+        <option value="6">X-Large</option>
+        <option value="7">Huge</option>
+      </select>
+      <span class="rte-divider"></span>
+      <button type="button" class="rte-btn" data-cmd="justifyLeft" title="Align left">⟸</button>
+      <button type="button" class="rte-btn" data-cmd="justifyCenter" title="Align center">⇔</button>
+      <button type="button" class="rte-btn" data-cmd="justifyRight" title="Align right">⟹</button>
+      <button type="button" class="rte-btn" data-cmd="justifyFull" title="Justify">☰</button>
+      <span class="rte-divider"></span>
+      <button type="button" class="rte-btn" data-cmd="insertUnorderedList" title="Bullet list">•≡</button>
+      <button type="button" class="rte-btn" data-cmd="insertOrderedList" title="Numbered list">1≡</button>
+      <span class="rte-divider"></span>
+      <button type="button" class="rte-btn" id="tableBtn" title="Insert table">⊞</button>
+      <button type="button" class="rte-btn" id="boxBtn" title="Insert highlighted box">▭</button>
+      <button type="button" class="rte-btn" data-cmd="removeFormat" title="Clear formatting">⨯</button>
+
+      <div class="rte-popover" id="tablePopover">
+        <label>Rows</label>
+        <input type="number" id="tableRows" min="1" max="12" value="3">
+        <label>Columns</label>
+        <input type="number" id="tableCols" min="1" max="10" value="3">
+        <button type="button" class="btn btn-primary" id="tableInsertBtn" style="padding:8px 14px; font-size:12px;">Insert</button>
+      </div>
+    </div>
+
+    <div id="content" class="editor-textarea" contenteditable="true" data-placeholder="Start writing… your words are read back gently if voice is on."></div>
+
+    <div class="editor-drop" id="dropZone">
+      <div id="dropPrompt">🖼 Drag &amp; drop an image here, or <label style="color:var(--violet); cursor:pointer; text-decoration:underline;">browse<input type="file" id="fileInput" accept="image/*" style="display:none;"></label></div>
+      <img id="imgPreview" style="display:none;">
+      <div><button class="btn btn-ghost" id="removeImgBtn" style="display:none; margin-top:8px;" onclick="removeImage()">Remove image</button></div>
+    </div>
+
+    <div class="editor-footer">
+      <button class="btn btn-ghost" onclick="window.location.href='dashboard.html'">Cancel</button>
+      <button class="btn btn-mint" onclick="saveAndDownload()">💾 Save to computer</button>
+      <button class="btn btn-primary" onclick="saveNote()">✓ Save note</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+NV.requireSession();
+
+const params = new URLSearchParams(window.location.search);
+const mode = params.get('mode') || 'new';
+const editId = params.get('id');
+let currentImage = null;
+let editingNote = null;
+
+if (mode === 'edit' && editId){
+  editingNote = NV.getNotes().find(n => n.id === editId);
+  if (editingNote){
+    document.getElementById('title').value = editingNote.title || '';
+    document.getElementById('content').innerHTML = editingNote.content || '';
+    document.getElementById('tags').value = editingNote.tags || '';
+    document.getElementById('reminder').value = editingNote.reminder || '';
+    document.getElementById('status').value = editingNote.status || 'Planned';
+    setPriority(editingNote.priority || 'Normal');
+    if (editingNote.image) showImage(editingNote.image);
+  }
+}
+
+// ---------- rich text toolbar ----------
+const contentEl = document.getElementById('content');
+
+document.querySelectorAll('#rteToolbar .rte-btn[data-cmd]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    contentEl.focus();
+    document.execCommand(btn.dataset.cmd, false, null);
+  });
+});
+
+document.getElementById('fontFamilySelect').addEventListener('change', (e) => {
+  contentEl.focus();
+  document.execCommand('fontName', false, e.target.value);
+});
+document.getElementById('fontSizeSelect').addEventListener('change', (e) => {
+  contentEl.focus();
+  document.execCommand('fontSize', false, e.target.value);
+});
+
+// table insert popover
+const tableBtn = document.getElementById('tableBtn');
+const tablePopover = document.getElementById('tablePopover');
+tableBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  tablePopover.classList.toggle('show');
+});
+document.addEventListener('click', (e) => {
+  if (!tablePopover.contains(e.target) && e.target !== tableBtn) tablePopover.classList.remove('show');
+});
+document.getElementById('tableInsertBtn').addEventListener('click', () => {
+  const rows = Math.max(1, Math.min(12, parseInt(document.getElementById('tableRows').value) || 3));
+  const cols = Math.max(1, Math.min(10, parseInt(document.getElementById('tableCols').value) || 3));
+  let html = '<table class="note-table">';
+  for (let r = 0; r < rows; r++){
+    html += '<tr>';
+    for (let c = 0; c < cols; c++){ html += '<td>&nbsp;</td>'; }
+    html += '</tr>';
+  }
+  html += '</table><p><br></p>';
+  contentEl.focus();
+  document.execCommand('insertHTML', false, html);
+  tablePopover.classList.remove('show');
+});
+
+// highlighted box insert
+document.getElementById('boxBtn').addEventListener('click', () => {
+  const html = '<div class="note-box">Type here…</div><p><br></p>';
+  contentEl.focus();
+  document.execCommand('insertHTML', false, html);
+});
+
+document.getElementById('priorityGroup').addEventListener('click', (e) => {
+  const btn = e.target.closest('button'); if (!btn) return;
+  setPriority(btn.dataset.v);
+});
+function setPriority(v){
+  document.querySelectorAll('#priorityGroup button').forEach(b => b.classList.toggle('active', b.dataset.v === v));
+}
+function getPriority(){ return document.querySelector('#priorityGroup button.active').dataset.v; }
+
+// live voice read-back: speak the last completed word after a short pause
+let voiceTimer = null;
+contentEl.addEventListener('input', (e) => {
+  clearTimeout(voiceTimer);
+  voiceTimer = setTimeout(() => {
+    const text = (e.target.textContent || '').trim();
+    const words = text.split(/\s+/);
+    const last = words[words.length - 1];
+    if (last) NV.speak(last);
+  }, 500);
+});
+
+// image drop / picker
+const dropZone = document.getElementById('dropZone');
+['dragover','dragenter'].forEach(evt => dropZone.addEventListener(evt, e => { e.preventDefault(); dropZone.classList.add('drag'); }));
+['dragleave','drop'].forEach(evt => dropZone.addEventListener(evt, e => { e.preventDefault(); dropZone.classList.remove('drag'); }));
+dropZone.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f) readImage(f); });
+document.getElementById('fileInput').addEventListener('change', e => { const f = e.target.files[0]; if (f) readImage(f); });
+
+function readImage(file){
+  const reader = new FileReader();
+  reader.onload = () => showImage(reader.result);
+  reader.readAsDataURL(file);
+}
+function showImage(dataUrl){
+  currentImage = dataUrl;
+  document.getElementById('imgPreview').src = dataUrl;
+  document.getElementById('imgPreview').style.display = 'block';
+  document.getElementById('dropPrompt').style.display = 'none';
+  document.getElementById('removeImgBtn').style.display = 'inline-flex';
+}
+function removeImage(){
+  currentImage = null;
+  document.getElementById('imgPreview').style.display = 'none';
+  document.getElementById('dropPrompt').style.display = 'block';
+  document.getElementById('removeImgBtn').style.display = 'none';
+}
+
+function buildNote(){
+  return {
+    id: editingNote ? editingNote.id : NV.uid(),
+    title: document.getElementById('title').value.trim(),
+    content: document.getElementById('content').innerHTML,
+    tags: document.getElementById('tags').value.trim(),
+    reminder: document.getElementById('reminder').value,
+    status: document.getElementById('status').value,
+    priority: getPriority(),
+    image: currentImage,
+    createdAt: editingNote ? editingNote.createdAt : undefined
+  };
+}
+
+function saveNote(){
+  const note = buildNote();
+  if (!note.title){ NV.toast('Give your note a title first.', 'info'); return; }
+  NV.upsertNote(note);
+  NV.toast('Note saved.', 'success');
+  setTimeout(() => window.location.href = 'dashboard.html', 450);
+}
+
+async function saveAndDownload(){
+  const note = buildNote();
+  if (!note.title){ NV.toast('Give your note a title first.', 'info'); return; }
+  NV.upsertNote(note);
+  await NV.saveNoteToDisk(note);
+}
+</script>
+</body>
+</html>
